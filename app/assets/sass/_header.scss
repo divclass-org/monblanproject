@@ -258,6 +258,7 @@
       background-color: darken(#ebebeb, 3);
     }
     &--clear {
+      cursor: pointer;
       opacity: 0;
       z-index: -1;
       .selected & {
