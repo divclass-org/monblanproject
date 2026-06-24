@@ -74,7 +74,7 @@
     align-items: center;
     gap: 48px;
     padding-bottom: 0;
-    padding-top: 0;
+    padding-top: 4px;
   }
   @include mb-down(sm) {
     gap: 20px;
