@@ -1,0 +1,92 @@
+@use "sass:color";
+
+@keyframes spinAround {
+  from {
+    transform: rotate(0);
+  }
+  to {
+    transform: rotate(359deg);
+  }
+}
+
+.dc-btn {
+  display: inline-flex;
+  max-width: 100%;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+
+  vertical-align: middle;
+  color: #000;
+  font-weight: 400;
+  text-align: center;
+  user-select: none;
+  background-color: transparent;
+  line-height: 1.5;
+  text-decoration: none;
+  position: relative;
+  border: 1px solid transparent;
+  outline: 0;
+
+  &:not([class*="--size-"]) {
+    padding: 7px 26px 6px;
+    letter-spacing: -0.33px;
+    font-size: 11px;
+    gap: 6px;
+  }
+
+  &:not([class*="--rounded"]) {
+    border-radius: 40px;
+  }
+
+
+  &[type="button"]:not(:disabled),
+  &[type="reset"]:not(:disabled),
+  &[type="submit"]:not(:disabled) {
+    cursor: pointer;
+    -webkit-appearance: button;
+  }
+
+  transition:
+    color 0.2s ease-in-out,
+    background-color 0.2s ease-in-out,
+    border-color 0.2s ease-in-out,
+    box-shadow 0.2s ease-in-out;
+
+
+  &--outline-secondary {
+    border-color: var(--default_color);
+    color: var(--default_color);
+    &:hover {
+      background-color: var(--default_color);
+      color: #fff;
+    }
+  }
+
+  &--rounded {
+    border-radius: 14px;
+  }
+
+  &--loading {
+    color: transparent !important;
+    background-color: var(--default_color);
+    &:after {
+      animation: spinAround 0.5s infinite linear;
+      border: 3px solid #fff;
+      border-radius: 290486px;
+      border-right-color: transparent;
+      border-top-color: transparent;
+      content: "";
+      display: block;
+      height: 16px;
+      position: relative;
+      width: 16px;
+
+      position: absolute;
+      left: calc(50% - (16px / 2));
+      top: calc(50% - (16px / 2));
+      position: absolute !important;
+    }
+  }
+}

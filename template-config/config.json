@@ -1,0 +1,15 @@
+{
+  "config": {
+    "tasks_dir": "template-config/tasks",
+    "src": {
+      "root":       "app",
+      "assets":     "app/assets",
+      "templates":  "app/assets/pug",
+      "css":        "app/assets/css",
+      "fonts":      "app/assets/fonts",
+      "sass":       "app/assets/sass",
+      "js":         "app/assets/js",
+      "jsLibs":     "app/assets/js/libs"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+@function set-line-height($font-size, $line-height) {
+  @return $line-height / $font-size;
+}
+
+
+@function calc-percentage($target, $container-width: null) {
+  @if $container-width ==null {
+
+    $container-keys: map-keys($container-max-widths);
+    $container-max-bp-key: nth($container-keys, -1);
+
+
+    @if map-has-key($container-max-widths, $container-max-bp-key) {
+      $container-width: map-get($container-max-widths, $container-max-bp-key) - $grid-gutter-width;
+    }
+
+    @else {
+      @warn "'$container-max-bp-key' key not found in $container-max-widths map.";
+      @return null;
+    }
+  }
+
+  @return percentage($target / $container-width);
+}
+
+
+

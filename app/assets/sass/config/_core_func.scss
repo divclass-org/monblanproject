@@ -1,0 +1,272 @@
+
+@function decimal-round($number, $digits: 0, $mode: round) {
+  $n: 1;
+
+  // $number must be a number
+  @if type-of($number) !=number {
+    @warn '#{ $number } is not a number.';
+    @return $number;
+  }
+
+  // $digits must be a unitless number
+  @if type-of($digits) !=number {
+    @warn '#{ $digits } is not a number.';
+    @return $number;
+  }
+
+  @else if not unitless($digits) {
+    @warn '#{ $digits } has a unit.';
+    @return $number;
+  }
+
+  @if $mode !=round and $mode !=ceil and $mode !=floor {
+    @warn "#{$mode} is not a valid rounding mode.";
+    @return $number;
+  }
+
+  @if $digits >0 {
+    @for $i from 1 through $digits {
+      $n: $n * 10;
+    }
+  }
+
+  @if $mode ==round {
+    @return round($number * $n) / $n;
+  }
+
+  @else if $mode ==ceil {
+    @return ceil($number * $n) / $n;
+  }
+
+  @else if $mode ==floor {
+    @return floor($number * $n) / $n;
+  }
+}
+
+@function calc_responsive_font_size_by_container_width($fontsize, $size, $props_scale_val, $el-has-fz-and-other-prop, $use-em) {
+
+  $scale-multiplier: 1;
+  @if $props_scale_val {
+    $scale-multiplier: $props_scale_val;
+    // @debug $scale-multiplier;
+  }
+
+  @if $size == $container-min-bp-key {
+
+    $container-min-width-layout-val-strip: $min-width-design-mobile-layout - $container-mobile-gg-width;
+    // @debug $container-min-width-layout-val-strip "$container-min-width-layout-val-strip";
+
+    $fz: $fontsize / ( $container-max-width-val-strip  / $container-min-width-layout-val-strip );
+
+    @if $use-em {
+      $fz: strip-unit($fz) / 16 * $scale-multiplier;
+      // @debug $fz;
+
+      @if map-get($el-has-fz-and-other-prop, 'fz') {
+        $main-fz-block: strip-unit(map-get($el-has-fz-and-other-prop, 'fz'));
+        $main-fz-zoom: strip-unit(map-get($el-has-fz-and-other-prop, 'zoom'));
+
+        $main-fz-val: strip-unit($main-fz-block / ( $container-max-width-val-strip  / $container-min-width-layout-val-strip ));
+        $main-em-val: $main-fz-val / 16 * $main-fz-zoom;
+
+        // @debug $main-em-val;
+        $fz: $fz / $main-em-val;
+      }
+
+      @return decimal-round($fz, 3, 'floor')+em;
+    } @else {
+      $fz: $fz * $scale-multiplier;
+      // @return decimal-round($fz, 3, 'floor');
+      @return floor($fz);
+    }
+
+  } @else {
+    @if map-has-key($container-max-widths, $size) {
+      $prev_size: prevKey($size, $container-max-widths);
+      @if $prev_size {
+
+        $container-prev-max-width-val: map-get($container-max-widths, $prev_size);
+        $container-prev-max-width-val-strip: $container-prev-max-width-val - $grid-gutter-width;
+
+        $fz: $fontsize / ( $container-max-width-val-strip  / $container-prev-max-width-val-strip ) * $scale-multiplier;
+
+        // @return decimal-round($fz, 3, 'floor');
+        @return floor($fz);
+      } @else {
+        @return null;
+      }
+    } @else {
+      @return null;
+    }
+  }
+}
+
+
+@function mapReverse ($map) {
+    $result: null;
+
+    @if type-of($map) == "map" {
+        $keys: map-keys($map);
+        $map-reversed: ();
+        
+        @for $i from length($keys) through 1 {
+            $map-reversed: map-merge(
+                $map-reversed,
+                (nth($keys, $i): map-get($map, nth($keys, $i)))
+            );
+        }
+
+        @if type-of($map-reversed) == "map" {
+            $result: $map-reversed;
+        } @else {
+            @warn 'There was an error reversing the order of "#{$map}"';
+        }
+    } @else {
+        @warn '"#{$map}" is not a valid map';
+    }
+
+    @return $result;
+}
+
+@function nth-delete($list, $n){
+    $result: ();
+    $n: if($n < 0, length($list) + $n + 1, $n);
+    $bracketed: is-bracketed($list);
+    $separator: list-separator($list);
+    @for $i from 1 through length($list){
+        @if $i != $n { $result: append($result, nth($list, $i)); }
+    }
+    @return join((), $result, $separator, $bracketed);
+}
+
+// make a copy of a list in reversed order
+// @return {list}
+@function reverse($list, $separator: auto) {
+    // not a list: just a value
+    @if not is-list($list) {
+        @return $list;
+    }
+    // choose separator for the reversed list
+    // user preference is the highest, then the original separator, lastly space
+    @if not has($separator, (space comma)) {
+        $separator_orig: separator($list);
+        @if has($separator_orig, (space comma)) {
+            $separator: $separator_orig;
+        }
+        @else {
+            $separator: space;
+        }
+    }
+    $i: length($list);
+    $result: ();
+    @while $i > 0 {
+        $result: append($result, nth($list, $i), $separator);
+        $i: $i - 1;
+    }
+    @return $result;
+}
+
+@function nextKey($current-value, $mapped-list) {
+    $the-list: map-keys($mapped-list);
+
+    $the-index: ( index( $the-list, $current-value) ) + 1;
+
+    @if $the-index <= length($the-list) {
+        $new-value: nth($the-list, $the-index);
+        @return $new-value;
+      } @else {
+        @return null;
+      }
+}
+
+@function prevKey($current-value, $mapped-list) {
+    $the-list: map-keys($mapped-list);
+
+    $the-index: ( index( $the-list, $current-value) ) - 1;
+
+    @if $the-index <= length($the-list) and $the-index > 0 {
+        $new-value: nth($the-list, $the-index);
+        @return $new-value;
+      } @else {
+        @return null;
+      }
+}
+
+
+/// Remove the unit of a length
+/// @param {Number} $number - Number to remove unit from
+/// @return {Number} - Unitless number
+@function strip-unit($number) {
+  @if type-of($number) == 'number' and not unitless($number) {
+    @return $number / ($number * 0 + 1);
+  }
+
+  @return $number;
+}
+
+
+@function responsive($breakpoint, $val, $scale: 1, $em: null, $tag_has_fz: (fz: null, bp: null, zoom: null)) {
+
+  @if $em ==null and $full-responsive-mobile-sizes and $breakpoint == $grid-min-width-bp-key {
+    $em: true;
+  }
+
+  // @if $scale == null {
+  //   @if $breakpoint == $grid-min-width-bp-key or $breakpoint == nth(map-keys($grid-breakpoints), 3) {
+  //     $scale: 1.3;
+  //   }
+  // }
+
+  $main_fz: 1;
+  $main_font_scale: 1;
+  $m: 1;
+  @if map-get($tag_has_fz, 'fz') {
+    $main_font_size: strip-unit(map-get($tag_has_fz, 'fz'));
+    $main_font_size_bp: map-get($tag_has_fz, 'bp');
+
+    @if map-get($tag_has_fz, 'zoom') {
+      $main_font_scale: map-get($tag_has_fz, 'zoom');
+    }
+
+    @if map-get($multiplier, $main_font_size_bp) {
+      $m: map-get($multiplier, $main_font_size_bp);
+    }
+
+    $main_fz: $main_font_size * $m * $main_font_scale / 16;
+  }
+
+
+  @if (type-of($breakpoint) == number) {
+    $fz: floor($breakpoint) * $scale;
+    @if $em {
+      $fz: strip-unit($fz);
+      @if map-get($tag_has_fz, 'fz') {
+        $fz: decimal-round($fz / 16 / $main_fz, 3, 'floor')+em;
+      } @else {
+        $fz: decimal-round($fz / 16, 3, 'floor')+em;
+      }
+    }
+    @return $fz;
+  }
+
+  @each $bp, $m_val in $multiplier {
+    @if $breakpoint == $bp {
+      $fz: $val * $m_val * $scale;
+      // @debug $m_val;
+
+      @if $em {
+        $fz: strip-unit($fz);
+        @if map-get($tag_has_fz, 'fz') {
+          $fz: decimal-round($fz / 16 / $main_fz, 3, 'floor')+em;
+        } @else {
+          $fz: decimal-round($fz / 16, 3, 'floor')+em;
+        }
+        @return $fz;
+      } @else {
+        @return floor($fz);
+      }
+    }
+  }
+  @return null;
+}
+

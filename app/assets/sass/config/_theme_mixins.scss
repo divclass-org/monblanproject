@@ -1,0 +1,143 @@
+$sizes-bp: () !default;
+$scales_bp: () !default;
+$full-responsive-mobile-sizes: false !default;
+$mfz: (fz: null, zoom: 1) !default;
+
+@mixin size-breakpoints($prop: 'font-size', $fontsize, $props_bp: $sizes-bp, $props_scale: $scales_bp, $el-has-fz-and-other-prop: $mfz, $use-em: $full-responsive-mobile-sizes ) {
+  // @debug $props_bp;
+  // @debug $props_scale;
+
+
+  #{$prop}: $fontsize;
+
+  $sizes: ();
+
+  @each $key, $val in $props_bp {
+
+    @if type-of($val) != number and $val != null {
+      // @debug '#{ $val } is not a number.';
+      $props_scale_val: map-get($props_scale, $key);
+
+      $sizes: map-merge($sizes, ($key: calc_responsive_font_size_by_container_width($fontsize, $val, $props_scale_val, $el-has-fz-and-other-prop, $use-em) ));
+    }
+
+    @if type-of($val) == number {
+      // @debug '#{ $val } is a number.';
+      $sizes: map-merge($sizes, ($key: $val));
+    }
+  }
+
+  // @debug $sizes;
+  @each $bp, $value in $sizes {
+    // @if map-has-key($grid-breakpoints, $bp) {
+    @if $bp in $grid-breakpoints {
+      @include mb-down($bp) {
+        #{$prop}: $value;
+      }
+    }
+  }
+
+}
+
+@mixin mb-down($point) {
+  @each $bp_key, $bp_val in $grid-breakpoints {
+    @if $bp_val !=0 and $point ==$bp_key {
+      @media (max-width: ($bp_val - .02)) {
+        @content;
+      }
+    }
+  }
+}
+
+@mixin mb-up($point) {
+  @each $bp_key, $bp_val in $grid-breakpoints {
+    @if $bp_val !=0 and $point ==$bp_key {
+      @media (min-width: $bp_val) {
+        @content;
+      }
+    }
+  }
+}
+
+@mixin mb-between($start, $end) {
+  @each $bp_key, $bp_val in $grid-breakpoints {
+    @if $bp_val != 0 and $start == $bp_key and $start != $end {
+      
+      @if map-has-key($grid-breakpoints, $start) and map-has-key($grid-breakpoints, $end) {
+        @media (min-width: $bp_val) and (max-width: (map-get($grid-breakpoints, $end) - .02)) {
+          @content;
+        }
+      }
+    }
+  }
+}
+
+@mixin mb-only($point) {
+  $next-point: null;
+
+  @each $bp_key, $bp_val in $grid-breakpoints {
+    @if $bp_val != 0 and $point == $bp_key {
+
+      $next-point: nextKey($bp_key, $grid-breakpoints);
+
+      @if $next-point !=null {
+        @media (min-width: $bp_val) and (max-width: (map-get($grid-breakpoints, $next-point) - .02)) {
+          @content;
+        }
+      }              
+
+    }
+  }
+}
+
+
+@mixin calc_mobile_rs($el, $layout-w, $max-w) {
+ $val: (16 / strip-unit($layout-w));
+ @media (max-width: ($max-w - 0.02)) {
+  #{$el} {
+   font-size: calc(#{$val} * 100vw + 0px);
+  }
+ }
+}
+
+
+@mixin placeholder {
+  &::-webkit-input-placeholder { @content; }
+  &:-moz-placeholder           { @content; }
+  &::-moz-placeholder          { @content; }
+  &:-ms-input-placeholder      { @content; }
+}
+
+
+@mixin dc-make-container($gutter: $grid-gutter-width) {
+  width: 100%;
+  padding-right: $gutter / 2;
+  padding-left: $gutter / 2;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+
+@mixin dc-make-container-max-widths($max-widths: $container-max-widths, $breakpoints: $grid-breakpoints) {
+  @each $breakpoint, $container-max-width in $max-widths {
+    @include mb-up($breakpoint) {
+      max-width: $container-max-width;
+    }
+  }
+}
+
+
+@mixin fz-b($prop, $val, $parent-fz: null) {
+  @if $responsive-between {
+    $val: strip-unit($val);
+    @if $parent-fz {
+      $val: decimal-round(($val / strip-unit($parent-fz)), 3, 'floor')+em;
+    } @else {
+      $val: decimal-round($val / 16, 3, 'floor')+em;
+    }
+    @media (min-width: $between-min) and (max-width: $between-max){
+      #{$prop}: $val;
+    }
+  }
+}
+

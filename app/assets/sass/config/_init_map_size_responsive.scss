@@ -1,0 +1,21 @@
+
+$exclude-size-responsive-points: ('md', 'sm') !default;
+
+$sizes-bp: ();
+
+$grid-breakpoints-clone: $grid-breakpoints;
+// @debug "$grid-breakpoints-clone:" $grid-breakpoints-clone;
+
+$keys-grid-breakpoints-clone: map-keys($grid-breakpoints-clone);
+$keys-grid-breakpoints-clone-ready: nth-delete($keys-grid-breakpoints-clone, 1);
+// @debug "$keys-grid-breakpoints-clone-ready:" $keys-grid-breakpoints-clone-ready;
+
+$keys-grid-breakpoints-clone-ready-reverse: reverse($keys-grid-breakpoints-clone-ready);
+
+@each $index in $keys-grid-breakpoints-clone-ready-reverse {
+  // @debug $index;
+  @if index($exclude-size-responsive-points, $index) == null {
+    $sizes-bp: map-merge($sizes-bp, (#{$index}: #{$index}));
+  } 
+}
+// @debug $sizes-bp;

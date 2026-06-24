@@ -1,0 +1,138 @@
+@import "_core_func.scss";
+
+$grid-gutter-width: 40px;
+
+$container-mobile-gg-width: 32px;
+$full-responsive-mobile-sizes: false;
+$min-width-design-mobile-layout: 375px; 
+
+$make-container: false;
+
+$exclude-size-responsive-points: ();
+
+$responsive-between: false; 
+$max-layout-width: 1920px;
+
+$use-tailwind: false;
+
+$grid-breakpoints: (
+  xs: 0,
+  xxs: 480px,
+  sm: 576px,
+  md: 768px,
+  lg: 992px,
+  xl: 1200px,
+  xxl: 1440px,
+  2xxl: 2120px,
+);
+
+$container-max-widths: (
+  sm: 540px,
+  md: 720px,
+  lg: 960px,
+  xl: 1140px,
+  xxl: 1320px,
+);
+
+$grid-min-width-bp-key: nth(map-keys($grid-breakpoints), 2);
+$container-min-width-bp-val: nth(map-values($grid-breakpoints), 2);
+
+$container-keys: map-keys($container-max-widths);
+$container-max-bp-key: nth($container-keys, -1);
+$container-min-bp-key: nth($container-keys, 1);
+
+$container-max-width-val: map-get($container-max-widths, $container-max-bp-key);
+$container-max-width-val-strip: $container-max-width-val - $grid-gutter-width;
+
+@if $use-tailwind {
+  // @tailwind base;
+  // @tailwind components;
+  @tailwind utilities;
+}
+
+// required
+@import "_init_map_size_responsive.scss";
+@import "_theme_func.scss";
+@import "_theme_mixins.scss";
+
+@if not $min-width-design-mobile-layout {
+  $min-width-design-mobile-layout: $container-min-width-bp-val;
+}
+
+$multiplier: ();
+@each $bp, $val in $container-max-widths {
+  $grid-gw: $grid-gutter-width;
+  @if $bp == $container-min-bp-key {
+    $grid-gw: $container-mobile-gg-width;
+  }
+
+  $prev_bp: prevKey($bp, $container-max-widths);
+  @if $prev_bp {
+    $prev-max-width-val: map-get($container-max-widths, $prev_bp);
+    $prev-max-width-val-strip: $prev-max-width-val - $grid-gw;
+
+    $multiplier_val: $prev-max-width-val-strip / $container-max-width-val-strip;
+    $multiplier: map-merge(
+      $multiplier,
+      (
+        $bp: $multiplier_val,
+      )
+    );
+  } @else {
+    $multiplier_val: ($min-width-design-mobile-layout - $grid-gw) /
+      $container-max-width-val-strip;
+    $multiplier: map-merge(
+      $multiplier,
+      (
+        $bp: $multiplier_val,
+      )
+    );
+    // @debug $min-width-design-mobile-layout;
+  }
+}
+
+.container {
+  @if $make-container {
+    @include dc-make-container($grid-gutter-width);
+    @include dc-make-container-max-widths();
+  }
+
+  @include mb-down($grid-min-width-bp-key) {
+    $px-mobile: ($container-mobile-gg-width / 2);
+    @if $full-responsive-mobile-sizes {
+      $px-mobile: strip-unit($px-mobile) / 16 + em;
+    }
+    padding-left: $px-mobile !important;
+    padding-right: $px-mobile !important;
+  }
+}
+
+@if $full-responsive-mobile-sizes {
+  @include calc_mobile_rs(
+    ".main-wrap",
+    $min-width-design-mobile-layout,
+    $container-min-width-bp-val
+  );
+}
+
+$between-min: nth(map-values($grid-breakpoints), -1);
+$between-max: ($max-layout-width - 0.02);
+
+@if $responsive-between {
+  .container {
+    @include mb-up(nth(map-keys($grid-breakpoints), -1)) {
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+      width: calc-percentage(
+        nth(map-values($container-max-widths), -1),
+        $between-max
+      );
+    }
+  }
+  @media (min-width: $between-min) and (max-width: $between-max) {
+    .main-wrap {
+      $v: strip-unit((16 / $max-layout-width));
+      font-size: calc(#{$v} * 100vw + 0px);
+    }
+  }
+}

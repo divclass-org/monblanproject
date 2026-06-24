@@ -1,0 +1,15 @@
+@import "config/_theme.config.scss";
+@import "_vars.scss";
+
+@import "globals/base/_normalize.scss";
+@import "globals/base/_base.scss";
+
+@import "_header.scss";
+@import "_main.scss";
+@import "components/components.scss";
+
+@if $use-tailwind {
+  // .test-tailwind {
+  //   @apply items-center md:text-lg;
+  // }
+}
